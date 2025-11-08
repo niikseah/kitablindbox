@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kita Blind Box - Standalone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom right, #F5E6D3, #E6D7C8, #D4C5B0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+            font-family: system-ui, -apple-system, sans-serif;
+            position: relative;
+            outline: none;
+        }
+
+        .container {
+            perspective: 2500px;
+            perspective-origin: center center;
+            cursor: default;
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: visible;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            padding: clamp(2vh, 5vh, 10vh) clamp(2vw, 5vw, 10vw);
+            pointer-events: none;
+        }
+        
+        .container > * {
+            pointer-events: auto;
+        }
+        
+        #cube {
+            transform-style: preserve-3d;
+        }
+
+        .cube-container {
+            position: absolute;
+            width: min(26cm, 90vw);
+            height: min(23cm, 80vh);
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            top: 50%;
+            left: 50%;
+            overflow: visible;
+            transform-origin: center center;
+        }
+
+        .face {
+            position: absolute;
+            border: none;
+            box-shadow: none;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            backface-visibility: visible;
+            transform-style: preserve-3d;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .face.bottom,
+        .face.front.front-4 {
+            overflow: visible;
+        }
+
+        .face img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+        
+        .face img.front-img {
+            backface-visibility: hidden;
+        }
+        
+        .face img.back {
+            transform: rotateY(180deg);
+            backface-visibility: hidden;
+        }
+        
+        .face-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            padding: 0.5rem;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .front {
+            width: 6.5cm;
+            height: 10cm;
+            background: transparent;
+            transform-origin: top;
+        }
+
+        .front-1, .front-2, .front-3 {
+            left: 0;
+            top: 6.5cm;
+            transform-origin: right top;
+        }
+
+        .front-4 {
+            left: 19.5cm;
+            top: 6.5cm;
+        }
+
+        .bottom {
+            width: 6.5cm;
+            height: 6.5cm;
+            background: transparent;
+        }
+
+        .rectangle-left-bottom,
+        .rectangle-right-bottom {
+            position: absolute;
+            width: calc(39 / 246 * 6.5cm);
+            height: calc(170 / 246 * 6.5cm);
+            top: calc((6.5cm - 170 / 246 * 6.5cm) / 2);
+            background: #F5E6D3;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .rectangle-left-bottom {
+            left: calc(-39 / 246 * 6.5cm);
+            transform-origin: right center;
+        }
+
+        .rectangle-right-bottom {
+            right: calc(-39 / 246 * 6.5cm);
+            transform-origin: left center;
+        }
+
+        .rectangle-right-front-4 {
+            position: absolute;
+            width: calc(1 / 10 * 10cm);
+            height: calc(6.5 / 10 * 10cm);
+            right: calc(-1 / 10 * 10cm);
+            top: calc((10cm - 6.5 / 10 * 10cm) / 2);
+            background: #F5E6D3;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+            transform-origin: left center;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .bottom-group {
+            position: absolute;
+            transform-style: preserve-3d;
+            overflow: visible;
+        }
+        
+        .bottom-group.bottom-2 {
+            transform-origin: center top;
+        }
+
+        .front-1-group,
+        .front-2-group,
+        .front-3-group {
+            position: absolute;
+            transform-style: preserve-3d;
+            transform-origin: 6.5cm center;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .front-1-group {
+            left: 0;
+            top: 0;
+        }
+
+        .front-2-group {
+            left: 6.5cm;
+            top: 0;
+        }
+
+        .front-3-group {
+            left: 13cm;
+            top: 0;
+        }
+
+        .bottom-1, .bottom-3 {
+            left: 0;
+            top: 0;
+            transform-origin: 3.25cm 6.5cm;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .bottom-2, .bottom-4 {
+            transform-origin: center top;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .bottom-2 {
+            left: 0;
+            top: 16.5cm;
+        }
+
+        .bottom-4 {
+            left: 19.5cm;
+            top: 16.5cm;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: clamp(1rem, 2vh, 2rem);
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: #6b5a52;
+            width: 90%;
+            max-width: 600px;
+            padding: 0 1rem;
+        }
+
+        .instructions h3 {
+            margin-bottom: 0.5rem;
+            font-size: clamp(0.875rem, 2.5vw, 1rem);
+        }
+
+        .instructions p {
+            font-size: clamp(0.75rem, 2vw, 0.875rem);
+            color: #8b6f60;
+            line-height: 1.4;
+        }
+
+        .control-buttons {
+            position: fixed;
+            top: clamp(1rem, 2vh, 2rem);
+            right: clamp(1rem, 2vw, 2rem);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 10000;
+            width: clamp(120px, 25vw, 180px);
+        }
+
+        .control-button {
+            display: inline-block;
+            padding: clamp(0.5rem, 1.5vw, 0.75rem) clamp(1.25rem, 3.5vw, 1.75rem);
+            border-radius: 10rem;
+            color: rgba(107, 90, 82, 0.9);
+            font-size: clamp(0.75rem, 2vw, 0.875rem);
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            border: none;
+            cursor: pointer;
+            font-family: system-ui, -apple-system, sans-serif;
+            pointer-events: auto;
+            min-width: 100px;
+            width: 100%;
+            background: white;
+        }
+
+        .control-button:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border-radius: 10rem;
+            z-index: -2;
+        }
+
+        .control-button:before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 100%;
+            background-color: rgba(107, 90, 82, 0.9);
+            transition: all 0.3s;
+            border-radius: 10rem;
+            z-index: -1;
+        }
+
+        .control-button:hover {
+            color: #fff;
+        }
+
+        .control-button:hover:before {
+            width: 100%;
+        }
+
+        .control-button:active {
+            transform: scale(0.95);
+        }
+
+        .character-buttons {
+            position: fixed;
+            top: clamp(8rem, 15vh, 12rem);
+            right: clamp(1rem, 2vw, 2rem);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            width: clamp(120px, 25vw, 180px);
+        }
+
+        .character-buttons.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .character-button {
+            padding: clamp(0.5rem, 1.5vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-size: clamp(0.75rem, 2vw, 0.9rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform ease-in 0.1s, box-shadow ease-in 0.25s;
+            font-family: system-ui, -apple-system, sans-serif;
+            min-width: 80px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: visible;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #character-roro-button,
+        #character-bubu-button,
+        #character-kiki-button,
+        #character-pebbie-button {
+            padding-left: clamp(3rem, 8vw, 4.5rem);
+            padding-right: clamp(1rem, 3vw, 1.5rem);
+        }
+
+        #character-roro-button img,
+        #character-bubu-button img,
+        #character-kiki-button img,
+        #character-pebbie-button img {
+            position: absolute;
+            height: 100%;
+            left: 0;
+            top: 0;
+            width: clamp(2.5rem, 6vw, 3.5rem);
+            object-fit: contain;
+            display: block;
+            padding: 0.25rem;
+        }
+
+        .character-button img {
+            width: auto;
+            height: 1.2em;
+            max-width: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .character-button:focus {
+            outline: 0;
+        }
+
+        .character-button:before,
+        .character-button:after {
+            position: absolute;
+            content: '';
+            display: block;
+            width: 140%;
+            height: 100%;
+            left: -20%;
+            z-index: -1000;
+            transition: all ease-in-out 0.5s;
+            background-repeat: no-repeat;
+        }
+
+        .character-button:before {
+            display: none;
+            top: -75%;
+        }
+
+        .character-button:after {
+            display: none;
+            bottom: -75%;
+        }
+
+        #character-roro-button {
+            background: linear-gradient(135deg, #ff8a7a 0%, #ffa89a 100%);
+            box-shadow: 0 2px 25px rgba(255, 138, 122, 0.5);
+        }
+
+        #character-roro-button:hover {
+            background: linear-gradient(135deg, #ffa89a 0%, #ff8a7a 100%);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(255, 138, 122, 0.4), 0 4px 8px rgba(255, 138, 122, 0.3);
+        }
+
+        #character-roro-button:before {
+            background-image:  
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%),
+                radial-gradient(circle, transparent 20%, #ff8a7a 20%, transparent 30%),
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%), 
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%),
+                radial-gradient(circle, transparent 10%, #ff8a7a 15%, transparent 20%),
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%),
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%),
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%),
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%);
+            background-size: 10% 10%, 20% 20%, 15% 15%, 20% 20%, 18% 18%, 10% 10%, 15% 15%, 10% 10%, 18% 18%;
+        }
+
+        #character-roro-button:after {
+            background-image:  
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%), 
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%),
+                radial-gradient(circle, transparent 10%, #ff8a7a 15%, transparent 20%),
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%),
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%),
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%),
+                radial-gradient(circle, #ff8a7a 20%, transparent 20%);
+            background-size: 15% 15%, 20% 20%, 18% 18%, 20% 20%, 15% 15%, 10% 10%, 20% 20%;
+        }
+
+        #character-bubu-button {
+            background: linear-gradient(135deg, #d4c5b0 0%, #e6d7c8 100%);
+            box-shadow: 0 2px 25px rgba(212, 197, 176, 0.5);
+        }
+
+        #character-bubu-button:hover {
+            background: linear-gradient(135deg, #e6d7c8 0%, #d4c5b0 100%);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(212, 197, 176, 0.4), 0 4px 8px rgba(212, 197, 176, 0.3);
+        }
+
+        #character-bubu-button:before {
+            background-image:  
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%),
+                radial-gradient(circle, transparent 20%, #d4c5b0 20%, transparent 30%),
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%), 
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%),
+                radial-gradient(circle, transparent 10%, #d4c5b0 15%, transparent 20%),
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%),
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%),
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%),
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%);
+            background-size: 10% 10%, 20% 20%, 15% 15%, 20% 20%, 18% 18%, 10% 10%, 15% 15%, 10% 10%, 18% 18%;
+        }
+
+        #character-bubu-button:after {
+            background-image:  
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%), 
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%),
+                radial-gradient(circle, transparent 10%, #d4c5b0 15%, transparent 20%),
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%),
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%),
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%),
+                radial-gradient(circle, #d4c5b0 20%, transparent 20%);
+            background-size: 15% 15%, 20% 20%, 18% 18%, 20% 20%, 15% 15%, 10% 10%, 20% 20%;
+        }
+
+        #character-kiki-button {
+            background: linear-gradient(135deg, #ffc4d6 0%, #ffd4e2 100%);
+            box-shadow: 0 2px 25px rgba(255, 196, 214, 0.5);
+        }
+
+        #character-kiki-button:hover {
+            background: linear-gradient(135deg, #ffd4e2 0%, #ffc4d6 100%);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(255, 196, 214, 0.4), 0 4px 8px rgba(255, 196, 214, 0.3);
+        }
+
+        #character-kiki-button:before {
+            background-image:  
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%),
+                radial-gradient(circle, transparent 20%, #ffc4d6 20%, transparent 30%),
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%), 
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%),
+                radial-gradient(circle, transparent 10%, #ffc4d6 15%, transparent 20%),
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%),
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%),
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%),
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%);
+            background-size: 10% 10%, 20% 20%, 15% 15%, 20% 20%, 18% 18%, 10% 10%, 15% 15%, 10% 10%, 18% 18%;
+        }
+
+        #character-kiki-button:after {
+            background-image:  
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%), 
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%),
+                radial-gradient(circle, transparent 10%, #ffc4d6 15%, transparent 20%),
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%),
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%),
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%),
+                radial-gradient(circle, #ffc4d6 20%, transparent 20%);
+            background-size: 15% 15%, 20% 20%, 18% 18%, 20% 20%, 15% 15%, 10% 10%, 20% 20%;
+        }
+
+        #character-pebbie-button {
+            background: linear-gradient(135deg, #f5ede5 0%, #faf5f0 100%);
+            color: #6b5a52;
+            box-shadow: 0 2px 25px rgba(245, 237, 229, 0.5);
+        }
+
+        #character-pebbie-button:hover {
+            background: linear-gradient(135deg, #faf5f0 0%, #f5ede5 100%);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(245, 237, 229, 0.4), 0 4px 8px rgba(245, 237, 229, 0.3);
+        }
+
+        #character-pebbie-button:before {
+            background-image:  
+                radial-gradient(circle, #f5ede5 20%, transparent 20%),
+                radial-gradient(circle, transparent 20%, #f5ede5 20%, transparent 30%),
+                radial-gradient(circle, #f5ede5 20%, transparent 20%), 
+                radial-gradient(circle, #f5ede5 20%, transparent 20%),
+                radial-gradient(circle, transparent 10%, #f5ede5 15%, transparent 20%),
+                radial-gradient(circle, #f5ede5 20%, transparent 20%),
+                radial-gradient(circle, #f5ede5 20%, transparent 20%),
+                radial-gradient(circle, #f5ede5 20%, transparent 20%),
+                radial-gradient(circle, #f5ede5 20%, transparent 20%);
+            background-size: 10% 10%, 20% 20%, 15% 15%, 20% 20%, 18% 18%, 10% 10%, 15% 15%, 10% 10%, 18% 18%;
+        }
+
+        #character-pebbie-button:after {
+            background-image:  
+                radial-gradient(circle, #f5ede5 20%, transparent 20%), 
+                radial-gradient(circle, #f5ede5 20%, transparent 20%),
+                radial-gradient(circle, transparent 10%, #f5ede5 15%, transparent 20%),
+                radial-gradient(circle, #f5ede5 20%, transparent 20%),
+                radial-gradient(circle, #f5ede5 20%, transparent 20%),
+                radial-gradient(circle, #f5ede5 20%, transparent 20%),
+                radial-gradient(circle, #f5ede5 20%, transparent 20%);
+            background-size: 15% 15%, 20% 20%, 18% 18%, 20% 20%, 15% 15%, 10% 10%, 20% 20%;
+        }
+
+        .character-button:active {
+            transform: scale(0.9);
+        }
+
+        .character-button.animate:before {
+            display: block;
+        }
+
+        .character-button.animate:after {
+            display: block;
+        }
+
+        #character-roro-button.animate:before,
+        #character-bubu-button.animate:before,
+        #character-kiki-button.animate:before,
+        #character-pebbie-button.animate:before {
+            animation: topBubbles ease-in-out 0.75s forwards;
+        }
+
+        #character-roro-button.animate:after,
+        #character-bubu-button.animate:after,
+        #character-kiki-button.animate:after,
+        #character-pebbie-button.animate:after {
+            animation: bottomBubbles ease-in-out 0.75s forwards;
+        }
+
+        @keyframes fireRise {
+            0% {
+                opacity: 0;
+                background-position: 5% 100%, 10% 100%, 15% 100%, 20% 100%, 25% 100%, 30% 100%, 35% 100%, 40% 100%, 45% 100%;
+                transform: translateY(0) scale(1);
+            }
+            25% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                background-position: 5% -100%, 10% -100%, 15% -100%, 20% -100%, 25% -100%, 30% -100%, 35% -100%, 40% -100%, 45% -100%;
+                transform: translateY(-10em) scale(0);
+                background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+            }
+        }
+
+        @keyframes smogRise {
+            0% {
+                opacity: 0;
+                background-position: 10% 100%, 20% 100%, 30% 100%, 40% 100%, 50% 100%, 60% 100%, 70% 100%;
+                transform: translateY(0) scale(1);
+            }
+            25% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                background-position: 10% -120%, 20% -120%, 30% -120%, 40% -120%, 50% -120%, 60% -120%, 70% -120%;
+                transform: translateY(-12em) scale(0);
+                background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+            }
+        }
+
+        @keyframes topBubbles {
+            0% {
+                background-position: 5% 90%, 10% 90%, 10% 90%, 15% 90%, 25% 90%, 25% 90%, 40% 90%, 55% 90%, 70% 90%;
+            }
+            50% {
+                background-position: 0% 80%, 0% 20%, 10% 40%, 20% 0%, 30% 30%, 22% 50%, 50% 50%, 65% 20%, 90% 30%;
+            }
+            100% {
+                background-position: 0% 70%, 0% 10%, 10% 30%, 20% -10%, 30% 20%, 22% 40%, 50% 40%, 65% 10%, 90% 20%;
+                background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+            }
+        }
+
+        @keyframes bottomBubbles {
+            0% {
+                background-position: 10% -10%, 30% 10%, 55% -10%, 70% -10%, 85% -10%, 70% -10%, 70% 0%;
+            }
+            50% {
+                background-position: 0% 80%, 20% 80%, 45% 60%, 60% 100%, 75% 70%, 95% 60%, 105% 0%;
+            }
+            100% {
+                background-position: 0% 90%, 20% 90%, 45% 70%, 60% 110%, 75% 80%, 95% 70%, 110% 10%;
+                background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+            }
+        }
+
+        @keyframes topTears {
+            0% {
+                background-position: 20% 0%, 50% 0%, 80% 0%, 35% 0%, 65% 0%, 15% 0%, 85% 0%, 45% 0%, 75% 0%;
+            }
+            50% {
+                background-position: 20% 50%, 50% 55%, 80% 48%, 35% 52%, 65% 50%, 15% 53%, 85% 49%, 45% 51%, 75% 47%;
+            }
+            100% {
+                background-position: 20% 120%, 50% 125%, 80% 118%, 35% 122%, 65% 120%, 15% 123%, 85% 119%, 45% 121%, 75% 117%;
+                background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+            }
+        }
+
+        @keyframes bottomTears {
+            0% {
+                background-position: 15% 0%, 45% 0%, 75% 0%, 30% 0%, 60% 0%, 25% 0%, 70% 0%;
+            }
+            50% {
+                background-position: 15% 52%, 45% 50%, 75% 53%, 30% 51%, 60% 49%, 25% 54%, 70% 48%;
+            }
+            100% {
+                background-position: 15% 122%, 45% 120%, 75% 123%, 30% 121%, 60% 119%, 25% 124%, 70% 118%;
+                background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+            }
+        }
+
+        @keyframes emojiRise {
+            0% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) scale(0.5);
+            }
+            30% {
+                opacity: 1;
+                transform: translate3d(0, -80px, 0) scale(0.8);
+            }
+            70% {
+                opacity: 0.9;
+            }
+            100% {
+                opacity: 0;
+                transform: translate3d(0, -150px, 0) scale(0);
+            }
+        }
+
+        @keyframes fireRise {
+            0% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) scale(0.5);
+            }
+            30% {
+                opacity: 1;
+                transform: translate3d(0, -100px, 0) scale(0.9);
+            }
+            70% {
+                opacity: 0.8;
+            }
+            100% {
+                opacity: 0;
+                transform: translate3d(0, -200px, 0) scale(0);
+            }
+        }
+
+        @keyframes tearFall {
+            0% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) scale(0.5);
+            }
+            30% {
+                opacity: 1;
+                transform: translate3d(0, 80px, 0) scale(0.8);
+            }
+            70% {
+                opacity: 0.9;
+            }
+            100% {
+                opacity: 0;
+                transform: translate3d(0, 150px, 0) scale(0);
+            }
+        }
+
+        .curved-rectangle {
+            position: absolute;
+            width: min(5cm, 20vw);
+            height: min(8cm, 30vh);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 1px;
+            background: transparent;
+            border: none;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+            overflow: visible;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        
+        .curved-rectangle:hover {
+            box-shadow: 0 0 20px rgba(107, 90, 82, 0.5);
+        }
+        
+        .card-hint {
+            position: fixed;
+            top: clamp(20rem, 38vh, 26rem);
+            right: clamp(1rem, 2vw, 2rem);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            width: clamp(120px, 25vw, 180px);
+        }
+        
+        .card-hint.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .card-hint-button {
+            padding: clamp(0.5rem, 1.5vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
+            background: rgba(107, 90, 82, 0.9);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: clamp(0.75rem, 2vw, 0.875rem);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            font-family: system-ui, -apple-system, sans-serif;
+            white-space: normal;
+            width: 100%;
+            text-align: center;
+            line-height: 1.4;
+            min-width: 100px;
+            box-sizing: border-box;
+        }
+        
+        .card-hint-button:hover {
+            background: rgba(107, 90, 82, 1);
+        }
+        
+        .card-hint-button:active {
+            transform: scale(0.95);
+        }
+
+        .curved-rectangle.visible {
+            opacity: 1;
+        }
+
+        .curved-rectangle {
+            transform-style: preserve-3d;
+        }
+
+        .curved-rectangle img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform-style: preserve-3d;
+            opacity: 1 !important;
+        }
+        
+        .curved-rectangle img.front-img {
+            transform: rotateY(0deg) translateZ(0.01px);
+        }
+        
+        .curved-rectangle img.back {
+            transform: rotateY(180deg) translateZ(-0.01px);
+        }
+
+        @media (max-width: 1200px) {
+            .cube-container {
+                width: min(24cm, 85vw);
+                height: min(21cm, 75vh);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: clamp(1vh, 3vh, 5vh) clamp(1vw, 3vw, 5vw);
+            }
+            
+            .cube-container {
+                width: min(22cm, 90vw);
+                height: min(19cm, 80vh);
+            }
+            
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1vh 1vw;
+            }
+            
+            .cube-container {
+                width: min(20cm, 95vw);
+                height: min(17cm, 85vh);
+            }
+            
+            .instructions {
+                bottom: 1rem;
+                width: 95%;
+            }
+            
+            .instructions h3 {
+                font-size: 0.875rem;
+            }
+            
+            .instructions p {
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-height: 600px) {
+            .cube-container {
+                height: min(15cm, 90vh);
+                width: min(17cm, 90vw);
+            }
+            
+            .instructions {
+                bottom: 0.5rem;
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 600px) {
+            .container {
+                padding: 1vh 2vw;
+            }
+            
+            .cube-container {
+                width: min(20cm, 80vw);
+                height: min(18cm, 85vh);
+            }
+        }
+    </style>
+</head>
+<body tabindex="0">
+    <div class="control-buttons">
+        <button class="control-button" id="reset-folding-button" title="Reset folding (or press R)">Reset Folding</button>
+        <button class="control-button" id="reset-view-button" title="Reset view (or press O)">Reset View</button>
+    </div>
+    <div class="character-buttons" id="character-buttons">
+        <button class="character-button bubbly-button" id="character-roro-button" title="Switch to Roro (or press 1)">
+            <img src="images/roroangry.png" alt="Roro">
+            Roro
+        </button>
+        <button class="character-button bubbly-button" id="character-bubu-button" title="Switch to Bubu (or press 2)">
+            <img src="images/bubunono.png" alt="Bubu">
+            Bubu
+        </button>
+        <button class="character-button bubbly-button" id="character-kiki-button" title="Switch to Kiki (or press 3)">
+            <img src="images/kikimwah.png" alt="Kiki">
+            Kiki
+        </button>
+        <button class="character-button bubbly-button" id="character-pebbie-button" title="Switch to Pebbie (or press 4)">
+            <img src="images/pebbieskipping.png" alt="Pebbie">
+            Pebbie
+        </button>
+    </div>
+    <div class="container" id="container">
+        <div class="cube-container" id="cube">
+            <div class="front-1-group">
+                <div class="face front front-1">
+                    <img src="images/KitaFront.png" alt="Front design" class="front-img"
+                         onerror="this.parentElement.innerHTML='<div class=\'face-text\'>Front Design</div>'">
+                    <img src="images/Kita42.png" alt="Front design inner" class="back"
+                         onerror="this.style.display='none'">
+                </div>
+                <div class="bottom-group bottom-1">
+                    <div class="face bottom">
+                        <img src="images/KitaLogo.png" alt="Bottom design" class="front-img"
+                             style="z-index: 0;" onerror="this.style.display='none'">
+                        <img src="images/Kita41.png" alt="Bottom design inner" class="back"
+                             style="z-index: 0;" onerror="this.style.display='none'">
+                        <div class="rectangle-left-bottom" style="z-index: 1;"></div>
+                        <div class="rectangle-right-bottom" style="z-index: 1;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="front-2-group">
+                <div class="face front front-2">
+                    <img src="images/KitaRight.png" alt="Front design" class="front-img"
+                         onerror="this.parentElement.innerHTML='<div class=\'face-text\'>Front Design</div>'">
+                    <img src="images/Kita32.png" alt="Right design inner" class="back"
+                         onerror="this.style.display='none'">
+                </div>
+                <div class="bottom-group bottom-2">
+                    <div class="face bottom">
+                        <img src="images/KitaBottom.png" alt="Bottom design" class="front-img"
+                             style="z-index: 0;" onerror="this.style.display='none'">
+                        <img src="images/Kita31.png" alt="Bottom design inner" class="back"
+                             style="z-index: 0;" onerror="this.style.display='none'">
+                        <div class="rectangle-left-bottom" style="z-index: 1;"></div>
+                        <div class="rectangle-right-bottom" style="z-index: 1;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="front-3-group">
+                <div class="face front front-3">
+                    <img src="images/KitaBack.png" alt="Front design" class="front-img"
+                         onerror="this.parentElement.innerHTML='<div class=\'face-text\'>Front Design</div>'">
+                    <img src="images/Kita22.png" alt="Back design inner" class="back"
+                         onerror="this.style.display='none'">
+                </div>
+                <div class="bottom-group bottom-3">
+                    <div class="face bottom">
+                        <img src="images/KitaTop.png" alt="Top design" class="front-img"
+                             style="z-index: 0;" onerror="this.style.display='none'">
+                        <img src="images/Kita21.png" alt="Top design inner" class="back"
+                             style="z-index: 0;" onerror="this.style.display='none'">
+                    </div>
+                </div>
+            </div>
+            <div class="face front front-4">
+                <img src="images/KitaLeft.png" alt="Front design" class="front-img"
+                     onerror="this.parentElement.innerHTML='<div class=\'face-text\'>Front Design</div>'">
+                <img src="images/Kita12.png" alt="Left design inner" class="back"
+                     onerror="this.style.display='none'">
+                <div class="rectangle-right-front-4"></div>
+            </div>
+            <div class="face bottom bottom-4">
+                <img src="images/KitaBottomInner.png" alt="Bottom Inner design" class="front-img"
+                     style="z-index: 0;" onerror="this.style.display='none'">
+                <img src="images/Kita11.png" alt="Bottom Inner design inner" class="back"
+                     style="z-index: 0;" onerror="this.style.display='none'">
+            </div>
+            <div class="curved-rectangle" id="curved-rectangle">
+                <img src="images/rorofront.png" alt="Roro front" class="front-img visible"
+                     onerror="this.style.display='none'">
+                <img src="images/roroback.png" alt="Roro back" class="back"
+                     onerror="this.style.display='none'">
+            </div>
+        </div>
+    </div>
+    <div class="card-hint" id="card-hint">
+        <button class="card-hint-button" id="expand-card-button">Click on the card to expand</button>
+        <button class="card-hint-button" id="rotate-card-button">Press L to rotate</button>
+    </div>
+
+    <div class="instructions">
+        <h3 id="instruction-text">Press F to fold (State 0/12)</h3>
+    </div>
+
+    <script>
+        const MAX_FOLD_STATE = 12;
+        const BOX_WIDTH = 26;
+        const BOX_HEIGHT = 23;
+        const TRANSITION_DURATION = 800;
+        let foldState = 0;
+        let rectangleRotationY = 0;
+        let currentImageSet = 'roro';
+        let foldedRotationX = 0;
+        let foldedRotationY = 0;
+        let isCardExpanded = false;
+        
+        const elements = {
+            cube: document.getElementById('cube'),
+            instructionText: document.getElementById('instruction-text'),
+            curvedRectangle: document.getElementById('curved-rectangle'),
+            front1Group: document.querySelector('.front-1-group'),
+            front2Group: document.querySelector('.front-2-group'),
+            front3Group: document.querySelector('.front-3-group'),
+            front4: document.querySelector('.front-4'),
+            bottom1: document.querySelector('.bottom-1'),
+            bottom2: document.querySelector('.bottom-2'),
+            bottom3: document.querySelector('.bottom-3'),
+            bottom4: document.querySelector('.bottom-4'),
+            rectangleLeftBottom1: document.querySelector('.bottom-1 .rectangle-left-bottom'),
+            rectangleRightBottom1: document.querySelector('.bottom-1 .rectangle-right-bottom'),
+            rectangleLeftBottom2: document.querySelector('.bottom-2 .rectangle-left-bottom'),
+            rectangleRightBottom2: document.querySelector('.bottom-2 .rectangle-right-bottom'),
+            rectangleRightFront4: document.querySelector('.rectangle-right-front-4')
+        };
+
+        const IMAGE_SETS = {
+            roro: { front: 'images/rorofront.png', back: 'images/roroback.png' },
+            bubu: { front: 'images/bubufront.png', back: 'images/bububack.png' },
+            kiki: { front: 'images/kikifront.png', back: 'images/kikiback.png' },
+            pebbie: { front: 'images/pebbiefront.png', back: 'images/pebbieback.png' }
+        };
+
+        function normalizeAngle(angle) {
+            angle = angle % 360;
+            return angle < 0 ? angle + 360 : angle;
+        }
+
+        function setTransform(element, transform) {
+            if (element) element.style.transform = transform;
+        }
+
+        function resetFolding() {
+            foldState = 0;
+            isCardExpanded = false;
+        updateFoldState();
+            updateRotation();
+        }
+
+        function resetView() {
+            foldedRotationX = 0;
+            foldedRotationY = 0;
+            isCardExpanded = false;
+            updateRotation();
+        }
+
+        function updateRotation() {
+            const normalizedY = normalizeAngle(foldedRotationY);
+            const isViewingFromBack = normalizedY > 90 && normalizedY < 270;
+            
+            let zoomScale = 0.75;
+            if (foldState >= 5 && isViewingFromBack) {
+                zoomScale = 0.6;
+            } else if (foldState >= 9) {
+                zoomScale = 0.75;
+            } else if (foldState >= 8) {
+                zoomScale = 0.55;
+            } else if (foldState >= 4) {
+                zoomScale = 0.75;
+            }
+            
+            let downOffset = '0';
+            if (foldState >= 9) {
+                downOffset = '20vh';
+            } else if (foldState >= 8) {
+                downOffset = isViewingFromBack ? '18vh' : '24vh';
+            }
+            let baseOffsetValue = 0;
+            if (foldState >= 9) {
+                baseOffsetValue = -14;
+            } else if (foldState >= 8) {
+                baseOffsetValue = -11;
+            } else if (foldState === 5) {
+                baseOffsetValue = -14;
+            } else if (foldState >= 4) {
+                baseOffsetValue = -14;
+            }
+            
+            let finalOffset = baseOffsetValue;
+            if (baseOffsetValue !== 0 && isViewingFromBack) {
+                finalOffset = foldState >= 5 ? 11 : Math.abs(baseOffsetValue);
+            }
+            
+            const leftOffset = finalOffset !== 0 ? `${finalOffset}vw` : '0';
+            
+            if (foldState === 0) {
+                const radY = (normalizedY * Math.PI) / 180;
+                const radX = (foldedRotationX * Math.PI) / 180;
+                const translateX = -Math.sin(radY) * (BOX_WIDTH / 2);
+                const translateY = -Math.sin(radX) * (BOX_HEIGHT / 2);
+                setTransform(elements.cube, 
+                    `translate(-50%, -50%) translate(${leftOffset}, ${downOffset}) scale(${zoomScale}) translate3d(${translateX}cm, ${translateY}cm, 0cm) rotateX(${foldedRotationX}deg) rotateY(${normalizedY}deg)`);
+            } else {
+                const radY = (normalizedY * Math.PI) / 180;
+                const translateZ = (1 - Math.abs(Math.cos(radY))) * 3;
+                setTransform(elements.cube, 
+                    `translate(-50%, -50%) translate(${leftOffset}, ${downOffset}) scale(${zoomScale}) translateZ(${translateZ}cm) rotateX(${foldedRotationX}deg) rotateY(${normalizedY}deg)`);
+            }
+            
+            updateCurvedRectangle(zoomScale);
+        }
+
+        function updateCurvedRectangle(zoomScale) {
+            if (!elements.curvedRectangle) return;
+            
+            if (foldState >= 8) {
+                const frontImg = elements.curvedRectangle.querySelector('.front-img');
+                const backImg = elements.curvedRectangle.querySelector('.back');
+                
+                const normalizedY = normalizeAngle(foldedRotationY);
+                const isViewingFromSide = (normalizedY > 45 && normalizedY < 135) || (normalizedY > 225 && normalizedY < 315);
+                
+                const cardHint = document.getElementById('card-hint');
+                
+                if (isViewingFromSide) {
+                    elements.curvedRectangle.style.opacity = '0';
+                    elements.curvedRectangle.style.pointerEvents = 'none';
+                    if (cardHint) cardHint.classList.remove('visible');
+                } else {
+                    elements.curvedRectangle.style.opacity = '1';
+                    elements.curvedRectangle.style.pointerEvents = 'auto';
+                    if (cardHint) cardHint.classList.add('visible');
+                    
+                    let compensatedRotation = normalizeAngle(rectangleRotationY - normalizedY);
+                    const isViewingFromBack = normalizedY > 90 && normalizedY < 270;
+                    if (isViewingFromBack) {
+                        compensatedRotation = normalizeAngle(compensatedRotation + 180);
+                    }
+                    let translateX = '9.5cm';
+                    let translateY = isCardExpanded 
+                        ? (foldState >= 9 ? '3vh' : '-15cm') 
+                        : (foldState >= 9 ? '0.8vh' : '-18cm');
+                    let translateZ = isCardExpanded ? (foldState >= 9 ? '15cm' : '20cm') : '-1cm';
+                    let scale = isCardExpanded ? (foldState >= 9 ? '1.8' : '2') : (foldState >= 9 ? '1' : `${zoomScale * 1.5}`);
+                    
+                    let baseTransform = `translate(-50%, -50%) translateX(${translateX}) translateY(${translateY}) translateZ(${translateZ})`;
+                    if (scale !== '1') {
+                        baseTransform += ` scale(${scale})`;
+                    }
+                    baseTransform += ` rotateY(${compensatedRotation}deg)`;
+                    
+                    setTransform(elements.curvedRectangle, baseTransform);
+                }
+                
+            } else {
+                elements.curvedRectangle.style.opacity = '0';
+                elements.curvedRectangle.style.pointerEvents = 'none';
+                setTransform(elements.curvedRectangle, 'translate(-50%, -50%)');
+                const cardHint = document.getElementById('card-hint');
+                if (cardHint) cardHint.classList.remove('visible');
+            }
+        }
+        
+        function switchImageSet(imageSet) {
+            if (!IMAGE_SETS[imageSet]) return;
+            
+            const frontImg = elements.curvedRectangle?.querySelector('.front-img');
+            const backImg = elements.curvedRectangle?.querySelector('.back');
+            
+            if (frontImg && backImg) {
+                frontImg.src = IMAGE_SETS[imageSet].front;
+                backImg.src = IMAGE_SETS[imageSet].back;
+                currentImageSet = imageSet;
+            }
+        }
+
+        const FOLD_TRANSFORMS = {
+            groups: {
+                1: { front1Group: 'rotateY(-90deg)' },
+                2: { 
+                    front1Group: 'rotateY(-180deg) translateZ(6.5cm) translateX(-6.5cm)',
+                    front2Group: 'rotateY(-90deg)'
+                },
+                4: {
+                    front1Group: 'rotateY(-180deg) translateZ(6.5cm) translateX(-19.5cm) rotateY(-90deg)',
+                    front2Group: 'rotateY(-180deg) translateZ(6.5cm) translateX(-6.5cm)',
+                    front3Group: 'rotateY(-90deg)'
+                }
+            },
+            rectangles: {
+                3: { rectangleRightFront4: 'rotateY(90deg) translateZ(-0.1cm)' },
+                6: {
+                    rectangleLeftBottom2: 'rotateY(-90deg) translateZ(-0.1cm)',
+                    rectangleRightBottom2: 'rotateY(90deg) translateZ(-0.1cm)'
+                },
+                11: {
+                    rectangleLeftBottom1: 'rotateY(-90deg) translateZ(-0.1cm)',
+                    rectangleRightBottom1: 'rotateY(90deg) translateZ(-0.1cm)'
+                }
+            },
+            bottoms: {
+                5: { bottom4: 'rotateX(-90deg)' },
+                7: { bottom2: 'rotateX(-90deg) translateZ(0.1cm)' },
+                10: { bottom3: 'rotateX(90deg) translateZ(-0.000001cm)' },
+                12: { bottom1: 'rotateX(90deg) translateZ(0.1cm)' }
+            }
+        };
+
+        function updateFoldState() {
+            setTransform(elements.front1Group, '');
+            setTransform(elements.front2Group, '');
+            setTransform(elements.front3Group, '');
+            setTransform(elements.front4, '');
+            setTransform(elements.bottom1, '');
+            setTransform(elements.bottom2, '');
+            setTransform(elements.bottom3, '');
+            setTransform(elements.bottom4, '');
+            setTransform(elements.rectangleLeftBottom1, '');
+            setTransform(elements.rectangleRightBottom1, '');
+            setTransform(elements.rectangleLeftBottom2, '');
+            setTransform(elements.rectangleRightBottom2, '');
+            setTransform(elements.rectangleRightFront4, '');
+            
+            for (let state = 1; state <= foldState; state++) {
+                ['groups', 'rectangles', 'bottoms'].forEach(type => {
+                    if (FOLD_TRANSFORMS[type][state]) {
+                        Object.entries(FOLD_TRANSFORMS[type][state]).forEach(([key, value]) => {
+                            setTransform(elements[key], value);
+                        });
+                    }
+                });
+            }
+            if (elements.curvedRectangle) {
+                elements.curvedRectangle.classList.toggle('visible', foldState >= 8);
+            }
+            
+            const cardHint = document.getElementById('card-hint');
+            if (cardHint && foldState >= 8) {
+                const normalizedY = normalizeAngle(foldedRotationY);
+                const isViewingFromSide = (normalizedY > 45 && normalizedY < 135) || (normalizedY > 225 && normalizedY < 315);
+                cardHint.classList.toggle('visible', !isViewingFromSide);
+            } else if (cardHint) {
+                cardHint.classList.remove('visible');
+            }
+            const characterButtons = document.getElementById('character-buttons');
+            if (characterButtons) {
+                characterButtons.classList.toggle('visible', foldState >= 8);
+            }
+            
+            if (foldState === 0) {
+                elements.instructionText.innerHTML = `Press F to fold (State 0/${MAX_FOLD_STATE}).<br>Use arrow keys to rotate`;
+            } else if (foldState === MAX_FOLD_STATE) {
+                elements.instructionText.innerHTML = 'Press U to undo.<br>Use arrow keys to rotate';
+            } else if (foldState >= 8) {
+                elements.instructionText.innerHTML = `Press F to continue folding or U to undo (State ${foldState}/${MAX_FOLD_STATE})`;
+            } else {
+                elements.instructionText.innerHTML = `Press F to continue folding or U to undo (State ${foldState}/${MAX_FOLD_STATE}).<br>Use arrow keys to rotate`;
+            }
+        }
+
+        const KEY_HANDLERS = {
+            'f': () => {
+                if (foldState < MAX_FOLD_STATE) foldState++;
+                isCardExpanded = false;
+                updateFoldState();
+                updateRotation();
+            },
+            'u': () => {
+                if (foldState > 0) {
+                    const wasAtState8 = foldState === 8;
+                    foldState--;
+                    isCardExpanded = false;
+                    updateFoldState();
+                    updateRotation();
+                    if (wasAtState8 && foldState === 7) {
+                        if (elements.curvedRectangle) {
+                            elements.curvedRectangle.style.opacity = '0';
+                            elements.curvedRectangle.style.pointerEvents = 'none';
+                        }
+                        const cardHint = document.getElementById('card-hint');
+                        if (cardHint) cardHint.classList.remove('visible');
+                    }
+                }
+            },
+            'l': () => {
+                if (foldState >= 8) {
+                rectangleRotationY = (rectangleRotationY + 180) % 360;
+                updateRotation();
+                }
+            }
+        };
+
+        function handleKeyDown(e) {
+            if (e.defaultPrevented) return;
+            
+            const key = e.key.toLowerCase();
+            const handler = KEY_HANDLERS[key];
+            
+            if (handler) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                handler();
+                return;
+            }
+            
+            if (key.startsWith('arrow')) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                const rotations = foldState > 0 ? {
+                    arrowleft: () => foldedRotationY = normalizeAngle(foldedRotationY - 90),
+                    arrowright: () => foldedRotationY = normalizeAngle(foldedRotationY + 90),
+                    arrowup: () => foldedRotationX = foldedRotationX === 0 ? -90 : (foldedRotationX === 90 ? 0 : foldedRotationX),
+                    arrowdown: () => foldedRotationX = foldedRotationX === 0 ? 90 : (foldedRotationX === -90 ? 0 : foldedRotationX)
+                } : {
+                    arrowleft: () => foldedRotationY = normalizeAngle(foldedRotationY - 180),
+                    arrowright: () => foldedRotationY = normalizeAngle(foldedRotationY + 180),
+                    arrowup: () => foldedRotationX = normalizeAngle(foldedRotationX - 180),
+                    arrowdown: () => foldedRotationX = normalizeAngle(foldedRotationX + 180)
+                };
+                
+                if (rotations[key]) rotations[key]();
+                updateRotation();
+                return;
+            }
+        }
+
+        updateRotation();
+        updateFoldState();
+
+        window.addEventListener('load', () => document.body.focus());
+        document.addEventListener('click', () => document.body.focus());
+        
+        if (elements.curvedRectangle) {
+            elements.curvedRectangle.addEventListener('click', (e) => {
+                if (foldState >= 8) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isCardExpanded = !isCardExpanded;
+                    updateRotation();
+                }
+            });
+        }
+        const expandCardButton = document.getElementById('expand-card-button');
+        const rotateCardButton = document.getElementById('rotate-card-button');
+        
+        [expandCardButton, rotateCardButton].forEach((btn, i) => {
+            if (btn) {
+                btn.addEventListener('click', (e) => {
+                    if (foldState >= 8) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (i === 0) {
+                            isCardExpanded = !isCardExpanded;
+                            updateRotation();
+                        } else if (KEY_HANDLERS['l']) {
+                            KEY_HANDLERS['l']();
+                        }
+                    }
+                });
+            }
+        });
+
+        const resetFoldingButton = document.getElementById('reset-folding-button');
+        const resetViewButton = document.getElementById('reset-view-button');
+        
+        [resetFoldingButton, resetViewButton].forEach((btn, i) => {
+            if (btn) {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    [resetFolding, resetView][i]();
+                });
+            }
+        });
+
+        ['roro', 'bubu', 'kiki', 'pebbie'].forEach(char => {
+            const btn = document.getElementById(`character-${char}-button`);
+            if (btn) {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    switchImageSet(char);
+                });
+            }
+        });
+
+        function createEmojiParticles(button, emoji, count = 20) {
+            const random = max => Math.random() * max;
+
+            let container = document.createElement('div');
+            container.className = 'emoji-particles';
+            container.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; overflow: visible;';
+
+            let isRoro = button.id === 'character-roro-button';
+            let isBubu = button.id === 'character-bubu-button';
+
+            for (let i = 0; i < count; i++) {
+                let randomSize = Math.random() * (30 - 15) + 15;
+                let tx = random(200) - 100;
+                let ty = isBubu ? random(150) : -random(150);
+                
+                let e = document.createElement("span");
+                e.textContent = emoji;
+                e.style.cssText = `
+                    position: absolute;
+                    left: 50%;
+                    top: ${isBubu ? '0%' : '100%'};
+                    font-size: ${randomSize}px;
+                    pointer-events: none;
+                    opacity: 0;
+                `;
+                
+                e.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(0.5)`;
+                const animName = isRoro ? 'fireRise' : isBubu ? 'tearFall' : 'emojiRise';
+                const animDuration = isRoro ? '2.5s' : isBubu ? '3s' : '2.5s';
+                e.style.animation = `${animName} ${animDuration} ease-out forwards`;
+                
+                container.appendChild(e);
+            }
+
+            button.style.position = 'relative';
+            button.appendChild(container);
+
+            setTimeout(() => {
+                if (container.parentNode) {
+                    container.parentNode.removeChild(container);
+                }
+            }, 3500);
+        }
+
+        const animateButton = (e) => {
+                e.preventDefault();
+            e.target.classList.remove('animate');
+            e.target.classList.add('animate');
+            
+            const emojiMap = {
+                'character-roro-button': ['🔥', 25],
+                'character-bubu-button': ['💧', 20],
+                'character-kiki-button': ['💖', 20]
+            };
+            const emoji = emojiMap[e.target.id];
+            if (emoji) createEmojiParticles(e.target, emoji[0], emoji[1]);
+            
+            setTimeout(() => e.target.classList.remove('animate'), 700);
+        };
+
+        document.querySelectorAll('.bubbly-button').forEach(btn => {
+            btn.addEventListener('click', animateButton);
+        });
+
+        document.addEventListener('keydown', handleKeyDown, true);
+    </script>
+</body>
+</html>
