@@ -825,6 +825,24 @@
         .curved-rectangle img.back {
             transform: rotateY(180deg) translateZ(-0.01px);
         }
+        
+        .keychain-container {
+            width: 6.5cm;
+            height: 8cm;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .keychain-container:hover {
+            box-shadow: none;
+        }
+        
+        .keychain-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+        }
 
         @media (max-width: 1200px) {
             .cube-container {
@@ -988,11 +1006,36 @@
                 <img src="images/roroback.png" alt="Roro back" class="back"
                      onerror="this.style.display='none'">
             </div>
+            <div class="curved-rectangle keychain-container" id="rorokey-container">
+                <img src="images/rorokey.png" alt="Rorokey" class="front-img"
+                     onerror="this.style.display='none'">
+                <img src="images/rorokey.png" alt="Rorokey back" class="back"
+                     onerror="this.style.display='none'">
+            </div>
+            <div class="curved-rectangle keychain-container" id="bubukey-container">
+                <img src="images/bubukey.png" alt="Bubukey" class="front-img"
+                     onerror="this.style.display='none'">
+                <img src="images/bubukey.png" alt="Bubukey back" class="back"
+                     onerror="this.style.display='none'">
+            </div>
+            <div class="curved-rectangle keychain-container" id="kikikey-container">
+                <img src="images/kikikey.png" alt="Kikikey" class="front-img"
+                     onerror="this.style.display='none'">
+                <img src="images/kikikey.png" alt="Kikikey back" class="back"
+                     onerror="this.style.display='none'">
+            </div>
+            <div class="curved-rectangle keychain-container" id="pebbiekey-container">
+                <img src="images/pebbiekey.png" alt="Pebbiekey" class="front-img"
+                     onerror="this.style.display='none'">
+                <img src="images/pebbiekey.png" alt="Pebbiekey back" class="back"
+                     onerror="this.style.display='none'">
+            </div>
         </div>
     </div>
     <div class="card-hint" id="card-hint">
-        <button class="card-hint-button" id="expand-card-button">Click on the card to expand</button>
-        <button class="card-hint-button" id="rotate-card-button">Press L to rotate</button>
+        <button class="card-hint-button" id="expand-card-button">Expand Card</button>
+        <button class="card-hint-button" id="rotate-card-button">Rotate Card</button>
+        <button class="card-hint-button" id="expand-keychain-button">Expand Keychain</button>
     </div>
 
     <div class="instructions">
@@ -1000,21 +1043,27 @@
     </div>
 
     <script>
-        const MAX_FOLD_STATE = 12;
+        const MAX_FOLD_STATE = 15;
         const BOX_WIDTH = 26;
         const BOX_HEIGHT = 23;
         const TRANSITION_DURATION = 800;
         let foldState = 0;
         let rectangleRotationY = 0;
+        let keychainRotationY = 0;
         let currentImageSet = 'roro';
         let foldedRotationX = 0;
         let foldedRotationY = 0;
         let isCardExpanded = false;
+        let isKeychainExpanded = false;
         
         const elements = {
             cube: document.getElementById('cube'),
             instructionText: document.getElementById('instruction-text'),
             curvedRectangle: document.getElementById('curved-rectangle'),
+            rorokeyContainer: document.getElementById('rorokey-container'),
+            bubukeyContainer: document.getElementById('bubukey-container'),
+            kikikeyContainer: document.getElementById('kikikey-container'),
+            pebbiekeyContainer: document.getElementById('pebbiekey-container'),
             front1Group: document.querySelector('.front-1-group'),
             front2Group: document.querySelector('.front-2-group'),
             front3Group: document.querySelector('.front-3-group'),
@@ -1049,7 +1098,8 @@
         function resetFolding() {
             foldState = 0;
             isCardExpanded = false;
-        updateFoldState();
+            isKeychainExpanded = false;
+            updateFoldState();
             updateRotation();
         }
 
@@ -1057,6 +1107,7 @@
             foldedRotationX = 0;
             foldedRotationY = 0;
             isCardExpanded = false;
+            isKeychainExpanded = false;
             updateRotation();
         }
 
@@ -1067,7 +1118,7 @@
             let zoomScale = 0.75;
             if (foldState >= 5 && isViewingFromBack) {
                 zoomScale = 0.6;
-            } else if (foldState >= 9) {
+            } else if (foldState >= 10) {
                 zoomScale = 0.75;
             } else if (foldState >= 8) {
                 zoomScale = 0.55;
@@ -1076,13 +1127,13 @@
             }
             
             let downOffset = '0';
-            if (foldState >= 9) {
+            if (foldState >= 10) {
                 downOffset = '20vh';
             } else if (foldState >= 8) {
                 downOffset = isViewingFromBack ? '18vh' : '24vh';
             }
             let baseOffsetValue = 0;
-            if (foldState >= 9) {
+            if (foldState >= 10) {
                 baseOffsetValue = -14;
             } else if (foldState >= 8) {
                 baseOffsetValue = -11;
@@ -1114,6 +1165,59 @@
             }
             
             updateCurvedRectangle(zoomScale);
+            updateKeychainContainers(zoomScale);
+        }
+
+        function updateKeychainContainers(zoomScale) {
+            const keychainContainers = {
+                roro: elements.rorokeyContainer,
+                bubu: elements.bubukeyContainer,
+                kiki: elements.kikikeyContainer,
+                pebbie: elements.pebbiekeyContainer
+            };
+            
+            Object.entries(keychainContainers).forEach(([char, container]) => {
+                if (!container) return;
+                
+                if (foldState >= 8 && currentImageSet === char) {
+                    const normalizedY = normalizeAngle(foldedRotationY);
+                    const isViewingFromSide = (normalizedY > 45 && normalizedY < 135) || (normalizedY > 225 && normalizedY < 315);
+                    
+                    if (isViewingFromSide) {
+                        container.style.opacity = '0';
+                        container.style.pointerEvents = 'none';
+                    } else {
+                        container.style.opacity = '1';
+                        container.style.pointerEvents = foldState >= 10 ? 'auto' : 'none';
+                        
+                        let compensatedRotation = normalizeAngle(keychainRotationY - normalizedY);
+                        
+                        let translateX, translateY, translateZ, scale;
+                        
+                        if (foldState < 10) {
+                            translateX = '16cm';
+                            translateY = isKeychainExpanded ? '-15cm' : '-18cm';
+                            translateZ = isKeychainExpanded ? '20cm' : '-1cm';
+                            scale = isKeychainExpanded ? '2' : `${zoomScale * 1.5}`;
+                        } else {
+                            translateX = '9.5cm';
+                            const isExpanded = isKeychainExpanded;
+                            const isState10Plus = foldState >= 10;
+                            translateY = isExpanded ? (isState10Plus ? '3vh' : '-15cm') : (isState10Plus ? '0.8vh' : '-18cm');
+                            translateZ = isExpanded ? (isState10Plus ? '15cm' : '20cm') : '-1cm';
+                            scale = isExpanded ? (isState10Plus ? '1.8' : '2') : (isState10Plus ? '1' : `${zoomScale * 1.5}`);
+                        }
+                        
+                        const baseTransform = `translate(-50%, -50%) translateX(${translateX}) translateY(${translateY}) translateZ(${translateZ})${scale !== '1' ? ` scale(${scale})` : ''} rotateY(${compensatedRotation}deg)`;
+                        setTransform(container, baseTransform);
+                    }
+                    
+                } else {
+                    container.style.opacity = '0';
+                    container.style.pointerEvents = 'none';
+                    setTransform(container, 'translate(-50%, -50%)');
+                }
+            });
         }
 
         function updateCurvedRectangle(zoomScale) {
@@ -1149,12 +1253,7 @@
                     let translateZ = isCardExpanded ? (foldState >= 9 ? '15cm' : '20cm') : '-1cm';
                     let scale = isCardExpanded ? (foldState >= 9 ? '1.8' : '2') : (foldState >= 9 ? '1' : `${zoomScale * 1.5}`);
                     
-                    let baseTransform = `translate(-50%, -50%) translateX(${translateX}) translateY(${translateY}) translateZ(${translateZ})`;
-                    if (scale !== '1') {
-                        baseTransform += ` scale(${scale})`;
-                    }
-                    baseTransform += ` rotateY(${compensatedRotation}deg)`;
-                    
+                    const baseTransform = `translate(-50%, -50%) translateX(${translateX}) translateY(${translateY}) translateZ(${translateZ})${scale !== '1' ? ` scale(${scale})` : ''} rotateY(${compensatedRotation}deg)`;
                     setTransform(elements.curvedRectangle, baseTransform);
                 }
                 
@@ -1176,7 +1275,13 @@
             if (frontImg && backImg) {
                 frontImg.src = IMAGE_SETS[imageSet].front;
                 backImg.src = IMAGE_SETS[imageSet].back;
+                
+                if (foldState >= 8 && currentImageSet !== imageSet) {
+                    keychainRotationY = (keychainRotationY + 180) % 360;
+                }
+                
                 currentImageSet = imageSet;
+                updateRotation();
             }
         }
 
@@ -1199,7 +1304,7 @@
                     rectangleLeftBottom2: 'rotateY(-90deg) translateZ(-0.1cm)',
                     rectangleRightBottom2: 'rotateY(90deg) translateZ(-0.1cm)'
                 },
-                11: {
+                12: {
                     rectangleLeftBottom1: 'rotateY(-90deg) translateZ(-0.1cm)',
                     rectangleRightBottom1: 'rotateY(90deg) translateZ(-0.1cm)'
                 }
@@ -1207,8 +1312,8 @@
             bottoms: {
                 5: { bottom4: 'rotateX(-90deg)' },
                 7: { bottom2: 'rotateX(-90deg) translateZ(0.1cm)' },
-                10: { bottom3: 'rotateX(90deg) translateZ(-0.000001cm)' },
-                12: { bottom1: 'rotateX(90deg) translateZ(0.1cm)' }
+                11: { bottom3: 'rotateX(90deg) translateZ(-0.000001cm)' },
+                13: { bottom1: 'rotateX(90deg) translateZ(0.1cm)' }
             }
         };
 
@@ -1239,8 +1344,28 @@
             if (elements.curvedRectangle) {
                 elements.curvedRectangle.classList.toggle('visible', foldState >= 8);
             }
+            const keychainContainers = {
+                roro: elements.rorokeyContainer,
+                bubu: elements.bubukeyContainer,
+                kiki: elements.kikikeyContainer,
+                pebbie: elements.pebbiekeyContainer
+            };
+            
+            Object.entries(keychainContainers).forEach(([char, container]) => {
+                if (container) {
+                    container.classList.toggle('visible', foldState >= 8 && currentImageSet === char);
+                }
+            });
             
             const cardHint = document.getElementById('card-hint');
+            const expandCardButton = document.getElementById('expand-card-button');
+            const rotateCardButton = document.getElementById('rotate-card-button');
+            const expandKeychainButton = document.getElementById('expand-keychain-button');
+            
+            if (expandCardButton) expandCardButton.style.display = foldState >= 9 ? 'none' : 'block';
+            if (rotateCardButton) rotateCardButton.style.display = foldState >= 9 ? 'none' : 'block';
+            if (expandKeychainButton) expandKeychainButton.style.display = (foldState >= 8 && foldState <= 9) ? 'block' : 'none';
+            
             if (cardHint && foldState >= 8) {
                 const normalizedY = normalizeAngle(foldedRotationY);
                 const isViewingFromSide = (normalizedY > 45 && normalizedY < 135) || (normalizedY > 225 && normalizedY < 315);
@@ -1268,14 +1393,17 @@
             'f': () => {
                 if (foldState < MAX_FOLD_STATE) foldState++;
                 isCardExpanded = false;
+                isKeychainExpanded = false;
                 updateFoldState();
                 updateRotation();
             },
             'u': () => {
                 if (foldState > 0) {
                     const wasAtState8 = foldState === 8;
+                    const wasAtState9 = foldState === 9;
                     foldState--;
                     isCardExpanded = false;
+                    isKeychainExpanded = false;
                     updateFoldState();
                     updateRotation();
                     if (wasAtState8 && foldState === 7) {
@@ -1283,17 +1411,17 @@
                             elements.curvedRectangle.style.opacity = '0';
                             elements.curvedRectangle.style.pointerEvents = 'none';
                         }
+                        [elements.rorokeyContainer, elements.bubukeyContainer, elements.kikikeyContainer, elements.pebbiekeyContainer].forEach(container => {
+                            if (container) {
+                                container.style.opacity = '0';
+                                container.style.pointerEvents = 'none';
+                            }
+                        });
                         const cardHint = document.getElementById('card-hint');
                         if (cardHint) cardHint.classList.remove('visible');
                     }
                 }
             },
-            'l': () => {
-                if (foldState >= 8) {
-                rectangleRotationY = (rectangleRotationY + 180) % 360;
-                updateRotation();
-                }
-            }
         };
 
         function handleKeyDown(e) {
@@ -1345,29 +1473,71 @@
                     e.preventDefault();
                     e.stopPropagation();
                     isCardExpanded = !isCardExpanded;
+                    isKeychainExpanded = false;
                     updateRotation();
                 }
             });
         }
-        const expandCardButton = document.getElementById('expand-card-button');
-        const rotateCardButton = document.getElementById('rotate-card-button');
         
-        [expandCardButton, rotateCardButton].forEach((btn, i) => {
-            if (btn) {
-                btn.addEventListener('click', (e) => {
-                    if (foldState >= 8) {
+        const keychainContainers = {
+            roro: elements.rorokeyContainer,
+            bubu: elements.bubukeyContainer,
+            kiki: elements.kikikeyContainer,
+            pebbie: elements.pebbiekeyContainer
+        };
+        
+        Object.entries(keychainContainers).forEach(([char, container]) => {
+            if (container) {
+                container.addEventListener('click', (e) => {
+                    if (foldState >= 10 && currentImageSet === char) {
                         e.preventDefault();
                         e.stopPropagation();
-                        if (i === 0) {
-                            isCardExpanded = !isCardExpanded;
-                            updateRotation();
-                        } else if (KEY_HANDLERS['l']) {
-                            KEY_HANDLERS['l']();
-                        }
+                        isKeychainExpanded = !isKeychainExpanded;
+                        isCardExpanded = false;
+                        updateRotation();
                     }
                 });
             }
         });
+        
+        const expandCardButton = document.getElementById('expand-card-button');
+        const rotateCardButton = document.getElementById('rotate-card-button');
+        const expandKeychainButton = document.getElementById('expand-keychain-button');
+        
+        if (expandCardButton) {
+            expandCardButton.addEventListener('click', (e) => {
+                if (foldState >= 8) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isCardExpanded = !isCardExpanded;
+                    isKeychainExpanded = false;
+                    updateRotation();
+                }
+            });
+        }
+        
+        if (rotateCardButton) {
+            rotateCardButton.addEventListener('click', (e) => {
+                if (foldState >= 8) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    rectangleRotationY = (rectangleRotationY + 180) % 360;
+                    updateRotation();
+                }
+            });
+        }
+        
+        if (expandKeychainButton) {
+            expandKeychainButton.addEventListener('click', (e) => {
+                if (foldState >= 8 && foldState <= 9 && currentImageSet) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isKeychainExpanded = !isKeychainExpanded;
+                    isCardExpanded = false;
+                    updateRotation();
+                }
+            });
+        }
 
         const resetFoldingButton = document.getElementById('reset-folding-button');
         const resetViewButton = document.getElementById('reset-view-button');
